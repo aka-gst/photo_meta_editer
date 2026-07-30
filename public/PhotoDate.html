@@ -150,4 +150,21 @@ jpegDate=function(buffer,newDate){
   while(position+4<source.length&&source[position]===255){const marker=source[position+1];if(marker===218||marker===217)break;const length=(source[position+2]<<8)+source[position+3],end=position+2+length;if(end>source.length)break;const oldExif=marker===225&&source[position+4]===69&&source[position+5]===120&&source[position+6]===105&&source[position+7]===102;if(!oldExif)parts.push(source.slice(position,end));position=end}
   parts.push(source.slice(position));return new Blob(parts,{type:'image/jpeg'});
 };
+</script><script>
+const intervalInput=$('#step');
+intervalInput.max='1000';
+intervalInput.addEventListener('input',()=>{
+  let value=Number(intervalInput.value);
+  if(value>1000)intervalInput.value='1000';
+  if(value<0)intervalInput.value='0';
+});
+const saveWithMobileCompletion=$('#save').onclick;
+$('#save').onclick=async()=>{
+  if(Number(intervalInput.value)>1000)intervalInput.value='1000';
+  await saveWithMobileCompletion();
+  if(mobile&&$('#notice').textContent&&!$('#notice').textContent.startsWith('Ошибка')){
+    $('#notice').className='notice show';
+    $('#notice').textContent='Готово';
+  }
+};
 </script></body></html>
