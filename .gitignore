@@ -43,3 +43,5 @@ next-env.d.ts
 /BackUp/
 /.site-package-stage/
 /.site-package.tgz
+/.site-stage-v2/
+/.site-package-v2.tgz
