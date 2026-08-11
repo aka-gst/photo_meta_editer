@@ -161,10 +161,233 @@ intervalInput.addEventListener('input',()=>{
 const saveWithMobileCompletion=$('#save').onclick;
 $('#save').onclick=async()=>{
   if(Number(intervalInput.value)>1000)intervalInput.value='1000';
+  /* superseded save-result wrapper
+  const noticeBefore=$('#notice').textContent;
+  const noticeBefore=$('#notice').textContent;
+  const noticeBefore=$('#notice').textContent;
   await saveWithMobileCompletion();
-  if(mobile&&$('#notice').textContent&&!$('#notice').textContent.startsWith('Ошибка')){
+  const noticeAfter=$('#notice').textContent;
+  const saveSucceeded=noticeAfter!==noticeBefore&&noticeAfter&&!/Ошибка|РћС€РёР±РєР°/.test(noticeAfter);
+  if(saveSucceeded){P.forEach(item=>item.selected=false);render();updateSelection()}
+  const noticeAfter=$('#notice').textContent;
+  const saveSucceeded=noticeAfter!==noticeBefore&&noticeAfter&&!/Ошибка|РћС€РёР±РєР°/.test(noticeAfter);
+  if(saveSucceeded){P.forEach(item=>item.selected=false);render();updateSelection()}
+  const noticeAfter=$('#notice').textContent;
+  const saved=noticeAfter!==noticeBefore&&noticeAfter&&!noticeAfter.startsWith('Ошибка');
+  */
+  const finalNoticeBefore=$('#notice').textContent;
+  await saveWithMobileCompletion();
+  const finalNoticeAfter=$('#notice').textContent;
+  const saved=finalNoticeAfter!==finalNoticeBefore&&finalNoticeAfter&&!finalNoticeAfter.startsWith('\u041e\u0448\u0438\u0431\u043a\u0430');
+  if(saved){
+    P.forEach(item=>item.selected=false);
+    render();updateSelection();
+  }
+  if(mobile&&saved){
     $('#notice').className='notice show';
     $('#notice').textContent='Готово';
   }
 };
+async function readEmbeddedPhotoDate(file){
+  if(!/\.jpe?g$/i.test(file.name)&&file.type!=='image/jpeg')return null;
+  try{
+    const bytes=new Uint8Array(await file.slice(0,524288).arrayBuffer());
+    for(let i=0;i+19<bytes.length;i++){
+      if(bytes[i]<49||bytes[i]>57||bytes[i+1]<48||bytes[i+1]>57||bytes[i+2]<48||bytes[i+2]>57||bytes[i+3]<48||bytes[i+3]>57||bytes[i+4]!==58||bytes[i+7]!==58||bytes[i+10]!==32||bytes[i+13]!==58||bytes[i+16]!==58)continue;
+      const value=String.fromCharCode(...bytes.subarray(i,i+19));
+      const match=/^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})$/.exec(value);
+      if(!match)continue;
+      const [,year,month,day,hour,minute,second]=match.map(Number),dateValue=new Date(year,month-1,day,hour,minute,second);
+      if(year>=1900&&month>=1&&month<=12&&day>=1&&day<=31&&!Number.isNaN(dateValue.getTime()))return dateValue;
+    }
+  }catch(error){}
+  return null;
+}
+async function refreshCurrentFolderDates(){
+  const items=(folder==='*'?P:P.filter(item=>item.folder===folder)).filter(item=>!item.embeddedDateChecked);
+  let next=0;
+  async function worker(){
+    while(next<items.length){
+      const item=items[next++];
+      const embedded=await readEmbeddedPhotoDate(item.file);
+      if(embedded)item.date=embedded;
+      item.embeddedDateChecked=true;
+    }
+  }
+  await Promise.all(Array.from({length:Math.min(6,items.length)},worker));
+  if(items.length){const gallery=$('#gallery'),position=gallery.scrollTop;render();gallery.scrollTop=position}
+}
+$('#folders').addEventListener('click',event=>{
+  if(!event.target.closest('.folder'))return;
+  const gallery=$('#gallery');
+  gallery.scrollTop=0;
+  requestAnimationFrame(()=>{gallery.scrollTop=0});
+  refreshCurrentFolderDates();
+});
+const moveDirectoryHandles=new Map();
+walk=async function(dir,path=''){
+  const currentPath=path||dir.name;
+  moveDirectoryHandles.set(currentPath,dir);
+  for await(const [name,handle] of dir.entries()){
+    if(handle.kind==='directory')await walk(handle,path?path+' / '+name:name);
+    else if(accepted({name,type:''})){
+      const file=await handle.getFile();
+      P.push({id:crypto.randomUUID(),file,name,folder:currentPath,date:new Date(file.lastModified||Date.now()),selected:false,url:null,handle,sourceDirectoryHandle:dir});
+    }
+  }
+};
+const renderBeforeMove=render;
+render=function(){
+  renderBeforeMove();
+  if(mobile)return;
+  const visible=view().slice(0,limit),cards=$('#gallery').querySelectorAll('.card');
+  cards.forEach((card,index)=>{
+    const item=visible[index];
+    if(!item)return;
+    card.draggable=true;
+    card.dataset.photoId=item.id;
+    card.title='Перетащите фото на папку слева';
+  });
+};
+let movingPhotoIds=[];
+$('#gallery').addEventListener('dragstart',event=>{
+  if(mobile)return;
+  const card=event.target.closest('.card');if(!card)return;
+  const dragged=P.find(item=>item.id===card.dataset.photoId);if(!dragged)return;
+  const group=dragged.selected?view().filter(item=>item.selected):[dragged];
+  movingPhotoIds=group.map(item=>item.id);
+  event.dataTransfer.effectAllowed='move';
+  event.dataTransfer.setData('application/x-photo-meta-ids',movingPhotoIds.join(','));
+  event.dataTransfer.setData('text/plain',`${group.length} photo files`);
+  card.classList.add('dragging');
+});
+$('#gallery').addEventListener('dragend',()=>{
+  movingPhotoIds=[];
+  document.querySelectorAll('.folder.move-target').forEach(button=>button.classList.remove('move-target'));
+  document.querySelectorAll('.card.dragging').forEach(card=>card.classList.remove('dragging'));
+});
+function moveTargetAt(event){
+  const button=document.elementFromPoint(event.clientX,event.clientY)?.closest('.folder');
+  if(!button)return null;
+  const path=button.querySelector('b')?.textContent;
+  return path&&moveDirectoryHandles.has(path)?{button,path,handle:moveDirectoryHandles.get(path)}:null;
+}
+window.addEventListener('dragover',event=>{
+  if(!movingPhotoIds.length)return;
+  document.querySelectorAll('.folder.move-target').forEach(button=>button.classList.remove('move-target'));
+  const target=moveTargetAt(event);
+  if(target){target.button.classList.add('move-target');event.dataTransfer.dropEffect='move'}
+},{capture:true});
+window.addEventListener('drop',async event=>{
+  if(!movingPhotoIds.length)return;
+  const ids=movingPhotoIds.slice();movingPhotoIds=[];
+  document.querySelectorAll('.folder.move-target').forEach(button=>button.classList.remove('move-target'));
+  const target=moveTargetAt(event);if(!target)return;
+  event.preventDefault();
+  const items=ids.map(id=>P.find(item=>item.id===id)).filter(item=>item&&item.folder!==target.path);
+  if(!items.length)return;
+  const word=items.length===1?'файл':'файлов';
+  if(!confirm(`Переместить ${items.length} ${word} в папку «${target.path}»?`))return;
+  try{
+    const movingNames=new Set();
+    for(const item of items){
+      if(movingNames.has(item.name))throw Error(`Среди выбранных есть несколько файлов с именем ${item.name}`);
+      movingNames.add(item.name);
+      if(!item.sourceDirectoryHandle)throw Error(`Нет доступа к исходной папке файла ${item.name}`);
+      try{await target.handle.getFileHandle(item.name);throw Error(`В папке «${target.path}» уже есть файл ${item.name}`)}catch(error){if(error.name!=='NotFoundError')throw error}
+    }
+    for(const item of items){
+      if(!item.sourceDirectoryHandle)throw Error(`Нет доступа к исходной папке файла ${item.name}`);
+      try{await target.handle.getFileHandle(item.name);throw Error(`В папке «${target.path}» уже есть файл ${item.name}`)}catch(error){if(error.name!=='NotFoundError')throw error}
+      const newHandle=await target.handle.getFileHandle(item.name,{create:true});
+      const writer=await newHandle.createWritable();await writer.write(item.file);await writer.close();
+      await item.sourceDirectoryHandle.removeEntry(item.name);
+      if(item.url){URL.revokeObjectURL(item.url);item.url=null}
+      item.handle=newHandle;item.sourceDirectoryHandle=target.handle;item.folder=target.path;item.file=await newHandle.getFile();item.selected=false;
+    }
+    $('#notice').className='notice show';$('#notice').textContent=`Перемещено: ${items.length} ${word}`;
+    render();updateSelection();
+  }catch(error){
+    $('#notice').className='notice show';$('#notice').textContent='Ошибка перемещения: '+error.message;
+    render();updateSelection();
+  }
+},{capture:true});
+const moveStyle=document.createElement('style');
+moveStyle.textContent='.card[draggable=true]{cursor:grab}.card.dragging{opacity:.45}.folder.move-target{outline:2px solid var(--g);background:linear-gradient(90deg,#183a25,#302047)!important}';
+document.head.append(moveStyle);
+render();
+const undoHistory=[];
+const undoButton=document.createElement('button');
+undoButton.id='undo';undoButton.textContent='↶ Вернуть прошлый ход';undoButton.disabled=true;
+$('#all').before(undoButton);
+function updateUndoButton(){undoButton.disabled=!undoHistory.length;undoButton.title=undoHistory.length?`Доступно действий: ${undoHistory.length}`:'Нет действий для возврата'}
+function rememberUndo(action){undoHistory.push(action);if(undoHistory.length>20)undoHistory.shift();updateUndoButton()}
+const applyBeforeUndo=$('#apply').onclick;
+$('#apply').onclick=event=>{
+  P.filter(item=>item.selected).forEach(item=>{if(!item.savedDate)item.savedDate=new Date(item.date)});
+  return applyBeforeUndo.call($('#apply'),event);
+};
+const saveBeforeUndo=$('#save').onclick;
+$('#save').onclick=async event=>{
+  const selected=P.filter(item=>item.selected),records=selected.map(item=>({item,date:new Date(item.savedDate||item.date)}));
+  let confirmed=false;const nativeConfirm=window.confirm;
+  window.confirm=(...args)=>{const result=nativeConfirm.apply(window,args);if(result)confirmed=true;return result};
+  try{await saveBeforeUndo.call($('#save'),event)}finally{window.confirm=nativeConfirm}
+  const failed=$('#notice').textContent.startsWith('\u041e\u0448\u0438\u0431\u043a\u0430');
+  if(confirmed&&records.length&&!failed){
+    records.forEach(({item})=>{item.savedDate=new Date(item.date);item.selected=false});
+    rememberUndo({type:'dates',records});render();updateSelection();
+  }
+};
+let pendingMoveUndo=null;
+$('#gallery').addEventListener('dragstart',()=>{
+  queueMicrotask(()=>{pendingMoveUndo=movingPhotoIds.map(id=>P.find(item=>item.id===id)).filter(Boolean).map(item=>({item,folder:item.folder,directory:item.sourceDirectoryHandle}))});
+});
+window.addEventListener('drop',()=>{
+  if(!pendingMoveUndo?.length)return;
+  const records=pendingMoveUndo;pendingMoveUndo=null;let attempts=0;
+  const detectMove=()=>{
+    const moved=records.filter(record=>record.item.folder!==record.folder);
+    const finished=moved.length===records.length||$('#notice').textContent.startsWith('\u041e\u0448\u0438\u0431\u043a\u0430');
+    if(finished){if(moved.length)rememberUndo({type:'move',records:moved});return}
+    if(++attempts<600)setTimeout(detectMove,100);
+  };
+  setTimeout(detectMove,100);
+},{capture:true});
+async function undoDates(action){
+  for(const record of action.records){
+    const {item}=record;if(!item.handle)throw Error(`Нет доступа к оригиналу ${item.name}`);
+    item.date=new Date(record.date);const blob=await changed(item),writer=await item.handle.createWritable();
+    await writer.write(blob);await writer.close();
+    if(item.url){URL.revokeObjectURL(item.url);item.url=null}item.file=await item.handle.getFile();item.savedDate=new Date(record.date);item.selected=false;
+  }
+}
+async function undoMove(action){
+  for(const {item,directory} of action.records){
+    if(!directory||!item.sourceDirectoryHandle)throw Error(`Нет доступа к папке файла ${item.name}`);
+    try{await directory.getFileHandle(item.name);throw Error(`В исходной папке уже есть файл ${item.name}`)}catch(error){if(error.name!=='NotFoundError')throw error}
+  }
+  for(const record of action.records){
+    const {item,directory,folder:oldFolder}=record,currentDirectory=item.sourceDirectoryHandle;
+    const oldHandle=await directory.getFileHandle(item.name,{create:true}),writer=await oldHandle.createWritable();
+    await writer.write(item.file);await writer.close();await currentDirectory.removeEntry(item.name);
+    if(item.url){URL.revokeObjectURL(item.url);item.url=null}
+    item.handle=oldHandle;item.sourceDirectoryHandle=directory;item.folder=oldFolder;item.file=await oldHandle.getFile();item.selected=false;
+  }
+}
+undoButton.onclick=async()=>{
+  const action=undoHistory.at(-1);if(!action)return;
+  const label=action.type==='dates'?'вернуть прежние даты':'вернуть файлы в прошлую папку';
+  if(!confirm(`Вы уверены, что хотите ${label} для ${action.records.length} файлов?`))return;
+  undoButton.disabled=true;
+  try{
+    if(action.type==='dates')await undoDates(action);else await undoMove(action);
+    undoHistory.pop();$('#notice').className='notice show';$('#notice').textContent=`Прошлый ход отменён: ${action.records.length} файлов`;render();updateSelection();
+  }catch(error){$('#notice').className='notice show';$('#notice').textContent='Ошибка возврата: '+error.message}
+  updateUndoButton();
+};
+$('#viewer').addEventListener('click',()=>{
+  $('#viewer').classList.remove('show');
+  $('#viewer div').innerHTML='';
+});
 </script></body></html>
