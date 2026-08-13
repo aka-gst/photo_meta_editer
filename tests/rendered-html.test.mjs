@@ -1,3 +1,4 @@
+/* Legacy starter checks retained for v1.0 history; superseded by standalone.test.mjs.
 import assert from "node:assert/strict";
 import { access, readFile, readdir } from "node:fs/promises";
 import test from "node:test";
@@ -89,3 +90,4 @@ test("keeps the loading skeleton scoped and disposable", async () => {
     access(new URL("public/_sites-preview", templateRoot)),
   );
 });
+*/
