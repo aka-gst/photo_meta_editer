@@ -59,6 +59,8 @@ test("explains whether saving changes originals or creates copies", async () => 
   assert.match(html, /downloadPreparedFile/);
   assert.match(html, /update-action-wrap\[hidden\]\{display:none\}/);
   assert.match(html, /save-group #download\{display:block;width:100%/);
+  assert.match(html, /layout\.classList\.toggle\('is-empty',!P\.length\)/);
+  assert.match(html, /\.layout\.is-empty\{height:230px\}/);
   assert.match(html, /intervalInput\.value==='0'/);
   assert.match(html, /Новая дата применена к выбранным/);
   assert.match(html, /Оригиналы недоступны для записи/);
