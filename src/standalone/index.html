@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src blob: data:; media-src blob: data:; connect-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+    <meta name="referrer" content="no-referrer">
+    <title>ФотоДата — изменение даты фото и видео</title>
+    <!-- STYLES -->
+  </head>
+  <body>
+    <main class="app">
+      <header class="app-header">
+        <a class="brand" href="#" aria-label="ФотоДата — на главную"><span class="logo" aria-hidden="true">Ф</span><span>ФотоДата</span></a>
+        <span class="privacy-note"><i></i> Обработка только на устройстве</span>
+      </header>
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">Локальный редактор метаданных</p>
+          <h1 id="page-title">Меняйте дату съёмки сразу у группы файлов</h1>
+          <p class="hero-copy">Фото и видео обрабатываются в браузере и не покидают ваше устройство.</p>
+          <div class="notice" id="notice" role="status"></div>
+        </div>
+        <button class="add" id="add">＋ Добавить папку</button>
+      </section>
+      <ol class="steps" aria-label="Порядок работы">
+        <li class="active"><b>1</b><span>Добавьте папку</span></li>
+        <li><b>2</b><span>Выберите файлы</span></li>
+        <li><b>3</b><span>Укажите дату</span></li>
+        <li><b>4</b><span>Сохраните</span></li>
+      </ol>
+      <div class="capability-note" id="capabilityNote" role="note"></div>
+      <section class="layout" aria-label="Файлы">
+        <aside class="side"><div class="sideTitle">ПАПКИ</div><div id="folders"></div></aside>
+        <div class="content">
+          <div class="tools">
+            <div><b id="title">Все файлы</b><br><span id="summary">Файлы не добавлены</span></div>
+            <div class="controls">
+              <select id="sort" aria-label="Сортировка файлов"><option value="old">Сначала старые</option><option value="new">Сначала новые</option><option value="name">По имени</option></select>
+              <button class="select-all" id="all">✓ Выбрать все фото</button><button id="none">Снять выбор</button>
+            </div>
+          </div>
+          <div class="gallery" id="gallery"></div>
+        </div>
+      </section>
+      <section class="editor" aria-label="Изменение даты">
+        <div class="editor-heading"><span class="step-badge">3</span><div><strong>Новая дата</strong><small>Применится к выбранным файлам</small></div></div>
+        <div class="fields">
+          <div class="field"><label for="date">ДАТА И ВРЕМЯ</label><input id="date" type="datetime-local" min="1900-01-01T00:00" max="9999-12-31T23:59"></div>
+          <div class="field"><label for="step">ИНТЕРВАЛ, МИН</label><input id="step" type="number" min="0" value="0"></div>
+          <button class="primary secondary-action" id="apply" disabled>Применить дату</button>
+        </div>
+        <div class="save-group"><div class="status" id="status">Ничего не выбрано</div><button class="primary copy-action" id="download" disabled>Скачать новые файлы</button><span class="update-action-wrap" id="updateActionWrap"><button class="primary" id="save" disabled>Обновить оригиналы</button></span></div>
+      </section>
+      <section class="mobile-save-queue" id="mobileSaveQueue" hidden aria-labelledby="mobileSaveTitle">
+        <div class="mobile-save-heading"><div><strong id="mobileSaveTitle">Сохраните подготовленные фотографии</strong><p>Открывайте системное меню для каждого файла и выбирайте место сохранения.</p></div><button id="mobileSaveNext">Открыть меню</button></div>
+        <div class="mobile-save-list" id="mobileSaveList"></div>
+      </section>
+    </main>
+    <input id="folderPick" type="file" webkitdirectory multiple hidden>
+    <input id="mediaPick" type="file" accept="image/*,video/*" multiple hidden>
+    <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Просмотр файла"><button aria-label="Закрыть">×</button><div></div></div>
+    <!-- SCRIPTS -->
+  </body>
+</html>
