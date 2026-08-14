@@ -7,11 +7,12 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "build:standalone": "node scripts/build-standalone.mjs",
     "dev": "vinext dev",
-    "build": "vinext build",
+    "build": "npm run build:standalone && vinext build",
     "start": "vinext start",
-    "test": "node --test tests/standalone.test.mjs",
-    "verify": "node scripts/verify-standalone.mjs && npm test",
+    "test": "node --test tests/*.test.mjs",
+    "verify": "npm run build:standalone && node scripts/verify-standalone.mjs && npm test",
     "lint": "eslint app worker scripts tests vite.config.ts next.config.ts --ignore-pattern app/_sites-preview --ignore-pattern tests/rendered-html.test.mjs",
     "preview:standalone": "node scripts/serve-standalone.mjs"
   },
