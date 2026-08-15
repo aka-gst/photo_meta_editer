@@ -1,4 +1,5 @@
 /* iPhone: передаём готовые файлы в системное меню «Поделиться» → «Сохранить изображения». */
+const iosDevice=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(/Macintosh/i.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
 const desktopSaveHandler=$('#save').onclick;
 $('#save').onclick=async()=>{
   if(!mobile)return desktopSaveHandler();
@@ -20,12 +21,12 @@ $('#save').onclick=async()=>{
       showMobileSaveQueue(shareFiles);
       $('#notice').className='notice show';
       $('#notice').textContent=`Подготовлено ${shareFiles.length} файлов — сохраните их по одному ниже`;
-    }else if(navigator.share&&(!navigator.canShare||navigator.canShare({files:shareFiles}))){
+    }else if(iosDevice&&navigator.share&&(!navigator.canShare||navigator.canShare({files:shareFiles}))){
       await navigator.share({files:shareFiles,title:'Multi Photo Change Date'});
       $('#notice').className='notice show';$('#notice').textContent='В меню выберите «Сохранить изображения»';
     }else{
       for(const file of shareFiles){const link=document.createElement('a');link.href=URL.createObjectURL(file);link.download=file.name;link.click();setTimeout(()=>URL.revokeObjectURL(link.href),30000)}
-      $('#notice').className='notice show';$('#notice').textContent='Меню «Поделиться» недоступно — файлы сохранены в загрузки';
+      $('#notice').className='notice show';$('#notice').textContent='Файл сохранён в «Загрузки»';
     }
   }catch(error){if(error.name!=='AbortError'){ $('#notice').className='notice show';$('#notice').textContent='Ошибка: '+error.message }}
   updateSelection();
@@ -39,11 +40,13 @@ function showMobileSaveQueue(files){
     link.href=url;link.download=file.name;link.click();
     setTimeout(()=>URL.revokeObjectURL(url),30000);
   };
-  const canShareFile=file=>navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}));
+  const canShareFile=file=>iosDevice&&navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}));
   const saveNext=$('#mobileSaveNext');let nextFileIndex=0;
   const updateNextButton=()=>{
     saveNext.disabled=nextFileIndex>=files.length;
-    saveNext.textContent=nextFileIndex>=files.length?'Все меню открыты':`Открыть меню · ${nextFileIndex+1} из ${files.length}`;
+    saveNext.textContent=nextFileIndex>=files.length
+      ?(iosDevice?'Все меню открыты':'Все файлы скачаны')
+      :(iosDevice?`Открыть меню · ${nextFileIndex+1} из ${files.length}`:`Скачать файл · ${nextFileIndex+1} из ${files.length}`);
   };
   saveNext.onclick=()=>{
     if(nextFileIndex>=files.length)return;
