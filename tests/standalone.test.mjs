@@ -57,6 +57,9 @@ test("explains whether saving changes originals or creates copies", async () => 
   assert.match(html, /Открыть меню/);
   assert.match(html, /Скачать файл ·/);
   assert.match(html, /iosDevice&&navigator\.share/);
+  assert.match(html, /makeZip\(shareFiles\)/);
+  assert.match(html, /application\/zip/);
+  assert.match(html, /ФотоДата_\$\{shareFiles\.length\}_файлов\.zip/);
   assert.doesNotMatch(html, /saveFile\.textContent='Сохранить'/);
   assert.match(html, /downloadPreparedFile/);
   assert.match(html, /update-action-wrap\[hidden\]\{display:none\}/);
