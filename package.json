@@ -1,6 +1,6 @@
 {
   "name": "multi-photo-change-date",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Privacy-first batch photo and video date editor for desktop and mobile browsers",
   "private": true,
   "engines": {
