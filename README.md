@@ -2,7 +2,7 @@
 
 > Privacy-first пакетный редактор даты съёмки фотографий и видео. Работает локально в браузере, показывает структуру папок и умеет безопасно перезаписывать оригиналы после подтверждения.
 
-![Version](https://img.shields.io/badge/version-1.1.0-9a63ff)
+![Version](https://img.shields.io/badge/version-1.2.0-9a63ff)
 ![Runtime](https://img.shields.io/badge/runtime-browser-55f58b)
 ![Tests](https://img.shields.io/badge/tests-node%3Atest-55f58b)
 ![License](https://img.shields.io/badge/license-MIT-blue)
@@ -107,6 +107,7 @@ GitHub Actions повторяет `verify`, `lint` и `build`, а также с�
 
 - `v1.0` — зафиксированная рабочая базовая версия.
 - `v1.1` — структурированный репозиторий, документация и автоматические проверки.
+- `v1.2` — веб-релиз, режимы работы на разных устройствах и улучшенный мобильный интерфейс.
 
 Полная история — в [CHANGELOG.md](CHANGELOG.md).
 
