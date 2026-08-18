@@ -32,6 +32,15 @@ test("requests multiple photos from Android without mixing media MIME types", as
   assert.doesNotMatch(html, /accept="image\/\*,video\/\*"/);
 });
 
+test("keeps the mobile gallery swipeable and limits selection taps", async () => {
+  const html = await readApp();
+  assert.match(html, /\.gallery\{touch-action:pan-y;overscroll-behavior-y:auto/);
+  assert.match(html, /class="check" aria-label="Выбрать файл"/);
+  assert.match(html, /querySelector\('\.media'\)\.onclick=toggle/);
+  assert.match(html, /querySelector\('\.check'\)\.onclick=toggle/);
+  assert.doesNotMatch(html, /c\.onclick=\(\)=>\{p\.selected/);
+});
+
 test("supports dragging photos and folders from Finder", async () => {
   const html = await readApp();
   assert.match(html, /getAsFileSystemHandle/);
