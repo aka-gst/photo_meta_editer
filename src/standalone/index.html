@@ -21,7 +21,7 @@
           <p class="hero-copy">Фото и видео обрабатываются в браузере и не покидают ваше устройство.</p>
           <div class="notice" id="notice" role="status"></div>
         </div>
-        <button class="add" id="add">＋ Добавить папку</button>
+        <div class="add-actions"><button class="add" id="add">＋ Добавить папку</button><button class="add add-video" id="addVideo" hidden>＋ Выбрать видео</button></div>
       </section>
       <ol class="steps" aria-label="Порядок работы">
         <li class="active"><b>1</b><span>Добавьте папку</span></li>
@@ -58,7 +58,8 @@
       </section>
     </main>
     <input id="folderPick" type="file" webkitdirectory multiple hidden>
-    <input id="mediaPick" type="file" accept="image/*,video/*" multiple hidden>
+    <input id="mediaPick" type="file" accept="image/*" multiple hidden>
+    <input id="videoPick" type="file" accept="video/*" multiple hidden>
     <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Просмотр файла"><button aria-label="Закрыть">×</button><div></div></div>
     <!-- SCRIPTS -->
   </body>

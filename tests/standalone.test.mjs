@@ -24,6 +24,14 @@ test("offers a visible select-all-photos action", async () => {
   assert.match(html, /view\(\)\.forEach\(x=>x\.selected=true\)/);
 });
 
+test("requests multiple photos from Android without mixing media MIME types", async () => {
+  const html = await readApp();
+  assert.match(html, /id="mediaPick" type="file" accept="image\/\*" multiple/);
+  assert.match(html, /id="videoPick" type="file" accept="video\/\*" multiple/);
+  assert.match(html, /Для нескольких фото отметьте их/);
+  assert.doesNotMatch(html, /accept="image\/\*,video\/\*"/);
+});
+
 test("supports dragging photos and folders from Finder", async () => {
   const html = await readApp();
   assert.match(html, /getAsFileSystemHandle/);
