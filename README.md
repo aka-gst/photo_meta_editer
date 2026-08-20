@@ -1,5 +1,7 @@
 # Multi Photo Change Date
 
+![Multi Photo Change Date cover](docs/images/photo-meta-cover.png)
+
 > Privacy-first пакетный редактор даты съёмки фотографий и видео. Работает локально в браузере, показывает структуру папок и умеет безопасно перезаписывать оригиналы после подтверждения.
 
 ![Version](https://img.shields.io/badge/version-1.2.0-9a63ff)
