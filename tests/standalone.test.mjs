@@ -12,6 +12,13 @@ test("ships as a self-contained HTML application", async () => {
   assert.doesNotMatch(html, /<script[^>]+src=/i);
 });
 
+test("links back to the aka-gst home page", async () => {
+  const html = await readApp();
+  assert.match(html, /class="home-link" href="https:\/\/aka-gst\.ru\/"/);
+  assert.match(html, /> На главную<\/a>/);
+  assert.match(html, /\.home-link\{display:flex/);
+});
+
 test("contains the core batch-editing workflow", async () => {
   const html = await readApp();
   for (const capability of ["showDirectoryPicker", "webkitdirectory", "patchVideo", "undoHistory", "movingPhotoIds", "refreshCurrentFolderDates"])
