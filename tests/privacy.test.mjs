@@ -15,7 +15,7 @@ test('blocks all runtime network connections and external resources',()=>{
   assert.match(sourceHtml,/Content-Security-Policy/);
   assert.match(sourceHtml,/default-src 'none'/);
   assert.match(sourceHtml,/connect-src 'none'/);
-  assert.match(sourceHtml,/img-src blob: data:/);
+  assert.match(sourceHtml,/img-src 'self' blob: data:/);
   assert.match(sourceHtml,/media-src blob: data:/);
 });
 

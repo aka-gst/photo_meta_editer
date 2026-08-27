@@ -3,7 +3,8 @@ import path from 'node:path';
 
 const root=path.resolve(import.meta.dirname,'..');
 const html=fs.readFileSync(path.join(root,'public/PhotoDate.html'),'utf8');
-const worker=`const PAGE=${JSON.stringify(html)};\nexport default {async fetch(request){const url=new URL(request.url);if(url.pathname!==\"/\"&&url.pathname!==\"/PhotoDate.html\")return new Response(\"Not found\",{status:404});return new Response(PAGE,{headers:{\"content-type\":\"text/html; charset=utf-8\",\"cache-control\":\"no-store\",\"x-content-type-options\":\"nosniff\"}})}};\n`;
+const favicon=fs.readFileSync(path.join(root,'public/favicon.svg'),'utf8');
+const worker=`const PAGE=${JSON.stringify(html)},FAVICON=${JSON.stringify(favicon)};\nexport default {async fetch(request){const url=new URL(request.url);if(url.pathname===\"/favicon.svg\")return new Response(FAVICON,{headers:{\"content-type\":\"image/svg+xml\",\"cache-control\":\"public, max-age=86400\",\"x-content-type-options\":\"nosniff\"}});if(url.pathname!==\"/\"&&url.pathname!==\"/PhotoDate.html\")return new Response(\"Not found\",{status:404});return new Response(PAGE,{headers:{\"content-type\":\"text/html; charset=utf-8\",\"cache-control\":\"no-store\",\"x-content-type-options\":\"nosniff\"}})}};\n`;
 const serverDir=path.join(root,'dist/server'),metadataDir=path.join(root,'dist/.openai');
 fs.mkdirSync(serverDir,{recursive:true});fs.mkdirSync(metadataDir,{recursive:true});
 fs.writeFileSync(path.join(serverDir,'index.js'),worker);

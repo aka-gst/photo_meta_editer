@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -51,6 +51,10 @@ async function build() {
     await mkdir(dirname(output), { recursive: true });
     await writeFile(output, bundle);
   }));
+  await Promise.all([
+    copyFile(resolve(sourceRoot, "favicon.svg"), resolve(root, "favicon.svg")),
+    copyFile(resolve(sourceRoot, "favicon.svg"), resolve(root, "public/favicon.svg")),
+  ]);
   console.log(`Built ${entrypoints.length} standalone entrypoints from src/standalone`);
 }
 

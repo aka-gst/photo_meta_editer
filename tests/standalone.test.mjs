@@ -19,6 +19,14 @@ test("links back to the aka-gst home page", async () => {
   assert.match(html, /\.home-link\{display:flex/);
 });
 
+test("uses a dedicated PhotoDate icon", async () => {
+  const html = await readApp();
+  const icon = await readFile(new URL("../src/standalone/favicon.svg", import.meta.url), "utf8");
+  assert.match(html, /<link rel="icon" href="favicon\.svg" type="image\/svg\+xml">/);
+  assert.match(icon, /fill="#6ee7a0"/);
+  assert.match(icon, /fill="#9a63ff"/);
+});
+
 test("contains the core batch-editing workflow", async () => {
   const html = await readApp();
   for (const capability of ["showDirectoryPicker", "webkitdirectory", "patchVideo", "undoHistory", "movingPhotoIds", "refreshCurrentFolderDates"])
